@@ -17,6 +17,8 @@ import scala.util.Try
 import akka.Done
 import akka.testkit.EventFilter
 import akka.actor.testkit.typed.{ TestException, TestKitSettings }
+import akka.actor.ActorInitializationException
+import akka.actor.testkit.typed.TestException
 import akka.actor.testkit.typed.scaladsl._
 import akka.actor.typed.ActorRef
 import akka.actor.typed.ActorSystem
@@ -47,6 +49,8 @@ import akka.persistence.typed.EventSourcedSignal
 import akka.persistence.typed.RetentionCriteria
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
+import akka.testkit.EventFilter
+import akka.testkit.TestEvent.Mute
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import org.scalatest.WordSpecLike
@@ -337,6 +341,9 @@ class EventSourcedBehaviorSpec extends ScalaTestWithActorTestKit(EventSourcedBeh
 
   val pidCounter = new AtomicInteger(0)
   private def nextPid(): PersistenceId = PersistenceId(s"c${pidCounter.incrementAndGet()})")
+
+  actorSystem.eventStream.publish(Mute(EventFilter.info(pattern = ".*was not delivered.*", occurrences = 100)))
+  actorSystem.eventStream.publish(Mute(EventFilter.warning(pattern = ".*received dead letter.*", occurrences = 100)))
 
   "A typed persistent actor" must {
 

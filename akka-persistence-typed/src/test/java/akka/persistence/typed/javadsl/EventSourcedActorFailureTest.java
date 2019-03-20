@@ -82,6 +82,8 @@ class FailingEventSourcedActor extends EventSourcedBehavior<String, String, Stri
 
 public class EventSourcedActorFailureTest extends JUnitSuite {
 
+  // FIXME ##24348 silence logging
+
   public static final Config config = conf().withFallback(ConfigFactory.load());
 
   @ClassRule public static final TestKitJunitResource testKit = new TestKitJunitResource(config);
