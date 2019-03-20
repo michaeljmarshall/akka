@@ -1294,7 +1294,7 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
           .schedule(deltaPropagationInterval, deltaPropagationInterval, self, DeltaPropagationTick))
     } else None
 
-  // cluster nodes, doesn't contain selfAddress
+  // cluster nodes, doesn't contain selfAddress, doesn't contain joining and weaklyUp
   var nodes: Set[UniqueAddress] = Set.empty
 
   // cluster weaklyUp nodes, doesn't contain selfAddress
@@ -2218,7 +2218,7 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
 
   def receiveGetReplicaCount(): Unit = {
     // selfAddress is not included in the set
-    replyTo ! ReplicaCount(allNodes.size + 1)
+    replyTo ! ReplicaCount(nodes.size + 1)
   }
 
 }
