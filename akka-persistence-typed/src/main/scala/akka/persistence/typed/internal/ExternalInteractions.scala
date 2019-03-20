@@ -143,6 +143,7 @@ private[akka] trait SnapshotInteractions[C, E, S] {
   }
 
   protected def internalSaveSnapshot(state: Running.RunningState[S]): Unit = {
+    setup.log.debug("Saving snapshot sequenceNr [{}]", state.seqNr)
     if (state.state == null)
       throw new IllegalStateException("A snapshot must not be a null state.")
     else
@@ -153,13 +154,11 @@ private[akka] trait SnapshotInteractions[C, E, S] {
 
   /** Deletes the snapshot identified by `sequenceNr`. */
   protected def internalDeleteSnapshots(toSequenceNr: Long): Unit = {
-    setup.log.debug("Deleting snapshot  to [{}]", toSequenceNr)
-
     val deleteTo = toSequenceNr - 1
     val deleteFrom = math.max(0, setup.retention.toSequenceNumber(deleteTo))
     val snapshotCriteria = SnapshotSelectionCriteria(minSequenceNr = deleteFrom, maxSequenceNr = deleteTo)
 
-    setup.log.debug("Deleting snapshots from [{}] to [{}]", deleteFrom, deleteTo)
+    setup.log.debug("Deleting snapshots from sequenceNr [{}] to [{}]", deleteFrom, deleteTo)
     setup.snapshotStore
       .tell(SnapshotProtocol.DeleteSnapshots(setup.persistenceId.id, snapshotCriteria), setup.selfUntyped)
   }

@@ -8,8 +8,7 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.concurrent.Future
-import scala.util.Failure
-import scala.util.Success
+
 import akka.actor.testkit.typed.scaladsl._
 import akka.actor.typed.ActorRef
 import akka.actor.typed.Behavior
@@ -30,13 +29,15 @@ object SnapshotMutableStateSpec {
 
     private var state = Map.empty[String, (Any, SnapshotMetadata)]
 
-    def loadAsync(persistenceId: String, criteria: SnapshotSelectionCriteria): Future[Option[SelectedSnapshot]] = {
+    override def loadAsync(
+        persistenceId: String,
+        criteria: SnapshotSelectionCriteria): Future[Option[SelectedSnapshot]] = {
       Future.successful(state.get(persistenceId).map {
         case (snap, meta) => SelectedSnapshot(meta, snap)
       })
     }
 
-    def saveAsync(metadata: SnapshotMetadata, snapshot: Any): Future[Unit] = {
+    override def saveAsync(metadata: SnapshotMetadata, snapshot: Any): Future[Unit] = {
       val snapshotState = snapshot.asInstanceOf[MutableState]
       val value1 = snapshotState.value
       Thread.sleep(50)
@@ -51,8 +52,20 @@ object SnapshotMutableStateSpec {
       }
     }
 
-    def deleteAsync(metadata: SnapshotMetadata) = ???
-    def deleteAsync(persistenceId: String, criteria: SnapshotSelectionCriteria) = ???
+    override def deleteAsync(metadata: SnapshotMetadata): Future[Unit] = {
+      state = state.filterNot {
+        case (pid, (_, meta)) => pid == metadata.persistenceId && meta.sequenceNr == metadata.sequenceNr
+      }
+      Future.successful(())
+    }
+
+    override def deleteAsync(persistenceId: String, criteria: SnapshotSelectionCriteria): Future[Unit] = {
+      state = state.filterNot {
+        case (pid, (_, meta)) =>
+          pid == persistenceId && meta.sequenceNr >= criteria.minSequenceNr && meta.sequenceNr <= criteria.maxSequenceNr
+      }
+      Future.successful(())
+    }
   }
 
   def conf: Config = ConfigFactory.parseString(s"""
