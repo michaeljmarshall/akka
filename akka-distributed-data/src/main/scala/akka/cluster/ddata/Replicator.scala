@@ -2218,7 +2218,7 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
 
   def receiveGetReplicaCount(): Unit = {
     // selfAddress is not included in the set
-    replyTo ! ReplicaCount(nodes.size + 1)
+    replyTo ! ReplicaCount(allNodes.size + 1)
   }
 
 }
