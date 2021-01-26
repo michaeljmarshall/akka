@@ -2363,8 +2363,8 @@ final class Source[Out, Mat](delegate: scaladsl.Source[Out, Mat]) extends Graph[
    * '''Cancels when''' downstream cancels
    */
   def groupedWeighted(minWeight: Long)(
-      costFn: function.Function[Out, java.lang.Long]): javadsl.Source[java.util.List[Out @uncheckedVariance], Mat] =
-    new Source(delegate.groupedWeighted(minWeight)(costFn.apply).map(_.asJava)) // TODO optimize to one step
+      costFn: java.util.function.Function[Out, java.lang.Long]): javadsl.Source[java.util.List[Out @uncheckedVariance], Mat] =
+    new Source(delegate.groupedWeighted(minWeight)(costFn.apply).map(_.asJava))
 
   /**
    * Ensure stream boundedness by limiting the number of elements from upstream.
